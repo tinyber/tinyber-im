@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+    tools {
+          // Install the Maven version configured as "M3" and add it to the path.
+          maven "maven3"
+    }
+    environment {
+
+       RELEASE_DOCKER_CREDENTIAL_ID = 'release_docker'
+       RELEASE_REGISTRY = 'registry.cn-shanghai.aliyuncs.com'
+       RELEASE_DOCKER_HUB_NAMESPACE = 'xuhuiyunyiyuan'
+
+       APP_PATH =' '
+       APP_NAME = 'tinyber-chat'
+       build_version ='latest'
+
+       APP_PORT1='10007:8089'
+       APP_PORT2='10006:9876'
+    }
+
+    stages {
+         //代码拉取检出
+        stage ('git scm') {
+            steps {
+                checkout(scm)
+                echo "拉取代码完成"
+            }
+        }
+
+        stage ('build') {
+            steps {
+                echo "构建完成"
+            }
+        }
+
+        //单元测试
+        stage ('UnitTest') {
+            steps {
+                echo "单元测试完成"
+            }
+        }
+
+        //代码质量检查
+        stage('Code quality check') {
+            steps {
+               echo "代码质量检查完成"
+             }
+        }
+
+        //代码打包 镜像构建 推送仓库
+        stage ('Compile And Push') {
+            steps {
+                sh "mvn  clean install -pl ${APP_PATH}${APP_NAME} -am -amd package -Dfile.encoding=UTF-8 -DskipTests=true -Pprod"
+                sh "docker build -f ${APP_PATH}${APP_NAME}/Dockerfile-online -t ${RELEASE_REGISTRY}/${RELEASE_DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version} ."
+                withCredentials([usernamePassword(passwordVariable : 'DOCKER_PASSWORD' ,usernameVariable : 'DOCKER_USERNAME' ,credentialsId : "$RELEASE_DOCKER_CREDENTIAL_ID" ,)]) {
+                    sh "echo '${DOCKER_PASSWORD}' | docker login ${RELEASE_REGISTRY} -u '${DOCKER_USERNAME}' --password-stdin"
+                    sh "docker push  ${RELEASE_REGISTRY}/${RELEASE_DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version}"
+                }
+                echo "代码打包->镜像构建->推送仓库完成"
+            }
+        }
+        //ssh远程服务拉取仓库 启动容器
+             stage('Pull and Start'){
+               steps{
+                 sshPublisher(publishers:
+                      [sshPublisherDesc(configName: 'yuxiweb',
+                            transfers:
+                            [sshTransfer(
+                                        cleanRemote: false,
+                                        excludes: '',
+                                        execCommand: "/data/scripts/deploy.sh ${RELEASE_REGISTRY} ${RELEASE_DOCKER_HUB_NAMESPACE} ${APP_NAME} ${build_version} ${APP_PORT1} ${APP_PORT2}",
+                                        execTimeout: 120000,
+                                        flatten: false,
+                                        makeEmptyDirs: false,
+                                        noDefaultExcludes: false,
+                                        patternSeparator: '[, ]+',
+                                        remoteDirectory: '/',
+                                        remoteDirectorySDF: false,
+                                        removePrefix: '',
+                                        sourceFiles: '')
+                            ],
+                            usePromotionTimestamp: false,
+                            useWorkspaceInPromotion: false,
+                            verbose: false)])
+                 }
+             }
+    }
+}

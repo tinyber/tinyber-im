@@ -1,0 +1,96 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.tiny</groupId>
+  <artifactId>tinyber-im</artifactId>
+
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>Maven Quick Start Archetype</name>
+  <url>http://maven.apache.org</url>
+
+  <description>基于tio开发分布式im聊天</description>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.3.4.RELEASE</version> <!-- lookup parent from repository -->
+    <relativePath/>
+  </parent>
+
+  <modules>
+    <module>tinyber-server</module>
+    <module>tinyber-push</module>
+    <module>tinyber-comm</module>
+    <module>tinyber-client-sdk</module>
+    <module>tinyber-cluster</module>
+    <module>tinyber-store</module>
+    <module>tinyber-store-mongo</module>
+    <module>tinyber-store-mysql</module>
+    <module>tinyber-core</module>
+  </modules>
+
+  <properties>
+    <!-- 推荐使用Harbor -->
+    <docker.registry.url>10.211.55.5</docker.registry.url>
+    <docker.registry.host>http://${docker.registry.url}:2375</docker.registry.host>
+    <docker.plugin.version>1.2.0</docker.plugin.version>
+    <java.version>1.8</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <tinyber.version>1.0-SNAPSHOT</tinyber.version>
+    <spring-boot.version>2.3.5.RELEASE</spring-boot.version>
+    <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
+    <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
+    <spring-cloud-alibaba.version>2.2.1.RELEASE</spring-cloud-alibaba.version>
+    <fastjson.version>1.2.70</fastjson.version>
+    <hutool.version>5.2.4</hutool.version>
+    <tio.version>3.7.0.v20201010-RELEASE</tio.version>
+    <tio.core.version>3.7.0.v20201010-RELEASE</tio.core.version>
+    <tio.websocket.version>3.7.0.v20201010-RELEASE</tio.websocket.version>
+    <mybatis-plus.version>3.4.2</mybatis-plus.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.tiny</groupId>
+        <artifactId>tinyber-store</artifactId>
+        <version>${tinyber.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tiny</groupId>
+        <artifactId>tinyber-comm</artifactId>
+        <version>${tinyber.version}</version>
+      </dependency>
+      <!--工具类 核心，包括Bean操作、日期、各种Util等-->
+      <dependency>
+        <groupId>cn.hutool</groupId>
+        <artifactId>hutool-all</artifactId>
+        <version>${hutool.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.t-io</groupId>
+        <artifactId>tio-core</artifactId>
+        <version>${tio.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>mybatis-plus-boot-starter</artifactId>
+        <version>${mybatis-plus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.t-io</groupId>
+        <artifactId>tio-websocket-server</artifactId>
+        <version>${tio.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+  </dependencies>
+</project>

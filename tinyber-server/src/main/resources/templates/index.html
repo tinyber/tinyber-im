@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="webkit" name="renderer">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <!--    <script src="static/js/jquery-3.2.1.min.js" ></script>-->
+    <title>监控页</title>
+    <link href="//at.alicdn.com/t/font_1870424_bhowq9fotzs.css?t=sdfdsfdsfdsfds" rel="stylesheet">
+    <style>
+        [v-clock] {
+            display: none;
+        }
+
+        body {
+            background-color: #f0f1f5;
+        }
+
+        #app {
+            width: 100%;
+            background-color: white;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: center;
+            border: 1px solid #C0C4CC;
+            padding: 10px;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<!--
+ "channelId": "1311174510283722752",
+            "platform": "ios",
+            "uid": "9FC5D62233E503AEE053AA0012ACBC74",
+            "terminal": "ws",
+            "status": "online",
+            "clientNode": "0.0.0.0:9876",
+            "group": [],
+            "loginTime": "2020-09-30 13:22:18"-->
+<div id="app">
+    <table>
+        <tr>
+            <th v-for="i in tab">{{i}}</th>
+        </tr>
+        <tr v-for="item in list">
+            <td>{{item.channelId}}</td>
+            <td>{{item.platform}}</td>
+            <td>{{item.uid}}</td>
+            <td>{{item.status}}</td>
+            <td>{{item.terminal}}</td>
+            <td>{{item.clientNode}}</td>
+            <td>{{item.group}}</td>
+            <td>{{item.loginTime}}</td>
+        </tr>
+    </table>
+</div>
+<!-- built files will be auto injected -->
+</body>
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            tab: ['链接', '平台', 'uid', '状态', '链接方式', '节点', '组', '最近登录时间'],
+            list: []
+        },
+        mounted() {
+            this.api();
+        },
+        methods: {
+            api() {
+                $.ajax({
+                    url: 'https://ihealth.hospital-cas.cn/api/user/onlineUser',
+                    type: 'get',
+                    // 设置的是请求参数
+                    data: {},
+                    // 用于设置响应体的类型 注意 跟 data 参数没关系！！！
+                    dataType: 'json',
+                    success: (res) => {
+                        console.log(res);
+                        this.list = res.result;
+                        // 一旦设置的 dataType 选项，就不再关心 服务端 响应的 Content-Type 了
+                        // 客户端会主观认为服务端返回的就是 JSON 格式的字符串
+                        console.log(res)
+                    }
+                })
+            }
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,132 @@
+pipeline {
+    agent any
+    tools {
+          // Install the Maven version configured as "M3" and add it to the path.
+          maven "maven3"
+    }
+
+    parameters {
+                string(name:'TAG_NAME',defaultValue: '',description:'版本号')
+                choice(
+                      description: '你需要选择哪个机器进行构建 ?',
+                      name: 'HOSTNAME',
+                      choices: ['app','test']
+                    )
+    }
+
+    environment {
+        DOCKER_CREDENTIAL_ID = 'harbor'
+        GITLAB_CREDENTIAL_ID ='gitlab_push'
+        REGISTRY = '192.168.1.12'
+        DOCKER_HUB_NAMESPACE = 'gz_cloud'
+        APP_PATH =' '
+        APP_NAME = 'tinyber-chat'
+        BRANCH_NAME='test'
+        PORT1="9876:9876"
+        PORT2="8080:8089"
+    }
+
+    stages {
+         //代码拉取检出
+        stage ('git scm') {
+            steps {
+                checkout(scm)
+                echo "拉取代码完成"
+            }
+        }
+
+        stage ('build') {
+            steps {
+                script {
+                    build_version = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                    build_version = "${env.BRANCH_NAME}-${build_version}"
+                    currentBuild.displayName = BUILD_NUMBER + "-" +build_version
+                }
+                echo "构建完成"
+            }
+        }
+
+        //单元测试
+        stage ('UnitTest') {
+            steps {
+                echo "单元测试完成"
+            }
+         }
+
+         //代码质量检查
+         stage('Code quality check') {
+            steps {
+               echo "代码质量检查完成"
+             }
+         }
+
+        //代码打包 镜像构建 推送仓库
+        stage ('Compile And Push') {
+            steps {
+                sh "mvn  clean install -pl ${APP_PATH}${APP_NAME} -am -amd package -Dfile.encoding=UTF-8 -DskipTests=true -Ptest"
+                sh "docker build -f ${APP_PATH}${APP_NAME}/Dockerfile -t ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version} ."
+                withCredentials([usernamePassword(passwordVariable : 'DOCKER_PASSWORD' ,usernameVariable : 'DOCKER_USERNAME' ,credentialsId : "$DOCKER_CREDENTIAL_ID" ,)]) {
+                    sh "echo '${DOCKER_PASSWORD}' | docker login ${REGISTRY} -u '${DOCKER_USERNAME}' --password-stdin"
+                    sh "docker push  ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version}"
+                }
+                echo "代码打包->镜像构建->推送仓库完成"
+            }
+        }
+        //代码打包 镜像构建 推送仓库
+        stage ('push latest') {
+            when {
+                   branch "master"
+                 }
+            steps{
+                   sh 'docker tag   ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version} ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:latest '
+                   sh 'docker push  ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:latest '
+
+                   echo "推送最新版本仓库完成"
+            }
+        }
+        stage('push with tag'){
+              when{
+                expression{
+                  return params.TAG_NAME =~ /v.*/
+                }
+              }
+              steps {
+                    input(id: 'release-image-with-tag', message: 'release image with tag?')
+                      withCredentials([usernamePassword(credentialsId: "$GITLAB_CREDENTIAL_ID", passwordVariable: 'GIT_USERNAME', usernameVariable: 'GIT_PASSWORD')]) {
+                        sh 'git config --global user.email "Samuel_way@163.com" '
+                        sh 'git config --global user.name "samuelway" '
+                        sh 'git tag -a $TAG_NAME -m "$TAG_NAME" '
+                        sh 'git push http://$GIT_USERNAME:$GIT_PASSWORD@http://101.133.143.15:30001/gz/cloud-hospital-im.git --tags --ipv4'
+                      }
+                    sh 'docker tag   ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version} ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${TAG_NAME} '
+                    sh 'docker push  ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${TAG_NAME} '
+                    echo "tag新版本仓库完成"
+              }
+        }
+        //ssh远程服务拉取仓库 启动容器
+        stage('Pull and Start'){
+          steps{
+            sshPublisher(publishers:
+                 [sshPublisherDesc(configName: "${HOSTNAME}",
+                                   transfers:
+                                   [sshTransfer(
+                                               cleanRemote: false,
+                                               excludes: '',
+                                               execCommand: "docker pull ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version};docker  stop ${APP_NAME};docker rm ${APP_NAME};docker run -p ${PORT1} -p ${PORT2}  --name ${APP_NAME} -v /data/logs/${APP_NAME}:/data/logs/${APP_NAME} -d -it  ${REGISTRY}/${DOCKER_HUB_NAMESPACE}/${APP_NAME}:${build_version}",
+                                               execTimeout: 120000,
+                                               flatten: false,
+                                               makeEmptyDirs: false,
+                                               noDefaultExcludes: false,
+                                               patternSeparator: '[, ]+',
+                                               remoteDirectory: '/',
+                                               remoteDirectorySDF: false,
+                                               removePrefix: '',
+                                               sourceFiles: '')
+                                   ],
+                                   usePromotionTimestamp: false,
+                                   useWorkspaceInPromotion: false,
+                                   verbose: false)])
+            }
+        }
+    }
+}

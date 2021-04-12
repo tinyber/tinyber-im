@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maersk.common.dao.mapper.TinyberMessageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tiny.store.mysql.entity.TinyberMessage">
+        <id column="id" property="id" />
+        <result column="chat_id" property="chatId" />
+        <result column="title" property="title" />
+        <result column="sender" property="sender" />
+        <result column="receiver" property="receiver" />
+        <result column="type" property="type" />
+        <result column="group_id" property="groupId" />
+        <result column="chat_type" property="chatType" />
+        <result column="content" property="content" />
+        <result column="format" property="format" />
+        <result column="extras" property="extras" />
+        <result column="state" property="state" />
+        <result column="timestamp" property="timestamp" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, chat_id, title, sender, receiver, type, group_id, chat_type, content, format, extras, state, timestamp
+    </sql>
+
+</mapper>
