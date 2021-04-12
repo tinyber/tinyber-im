@@ -5,7 +5,7 @@
   <groupId>com.tiny</groupId>
   <artifactId>tinyber-im</artifactId>
 
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>Maven Quick Start Archetype</name>
   <url>http://maven.apache.org</url>
@@ -24,7 +24,7 @@
     <module>tinyber-push</module>
     <module>tinyber-comm</module>
     <module>tinyber-client-sdk</module>
-    <module>tinyber-cluster</module>
+    <module>tinyber-cluster-server</module>
     <module>tinyber-store</module>
     <module>tinyber-store-mongo</module>
     <module>tinyber-store-mysql</module>

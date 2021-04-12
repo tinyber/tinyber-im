@@ -1,6 +1,5 @@
 package com.tiny.push.controller;
 
-import com.tiny.common.response.ResponseResult;
 import com.tiny.push.push.PushBizService;
 import com.tiny.push.domain.PushRequest;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,13 +24,13 @@ public class PushMessageController {
     }
 
     @PostMapping("/push/message")
-    public ResponseResult<Boolean> push(@RequestBody PushRequest pushRequest){
+    public com.tiny.common.response.Result<Boolean> push(@RequestBody PushRequest pushRequest){
 
-       return ResponseResult.success(pushBizService.pushMessage(pushRequest));
+       return com.tiny.common.response.Result.success(pushBizService.pushMessage(pushRequest));
     }
 
     @PostMapping("/push/callback/{channel}")
-    public ResponseResult<String> push(@PathVariable("channel") String channel){
-        return ResponseResult.success();
+    public com.tiny.common.response.Result<String> push(@PathVariable("channel") String channel){
+        return com.tiny.common.response.Result.success();
     }
 }
